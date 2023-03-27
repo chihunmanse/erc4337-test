@@ -1,20 +1,22 @@
 /** @format */
 
-const hre = require("hardhat");
-import { ethers, network } from "hardhat";
+import fs from "fs";
+import { ethers } from "hardhat";
 import {
   EntryPointAddress,
   RPC_URL,
   SimpleAccountFactoryAddress,
-} from "../src/config";
-import { getInitCode } from "../src/getInitCode";
+} from "../src/constant";
 import { getSimpleAccount } from "../src/getSimpleAccount";
 
 async function main() {
-  const [bundler] = await ethers.getSigners();
+  let config = JSON.parse(fs.readFileSync("./config.json", "utf8"));
 
   const owner = new ethers.Wallet(ethers.utils.randomBytes(32));
   const signinKey = owner.privateKey;
+
+  config.owner = owner.address;
+  config.privateKey = signinKey;
 
   const provider = new ethers.providers.JsonRpcProvider(RPC_URL);
 
@@ -24,26 +26,12 @@ async function main() {
     EntryPointAddress,
     SimpleAccountFactoryAddress
   );
-  const address = await accountAPI.getCounterFactualAddress();
-  console.log(address);
+  const account = await accountAPI.getCounterFactualAddress();
 
-  const SimpleAccountFactory = await ethers.getContractFactory(
-    "SimpleAccountFactory"
-  );
-  const simpleAccountFactory = new ethers.Contract(
-    SimpleAccountFactoryAddress,
-    SimpleAccountFactory.interface
-  );
-
-  const EntryPoint = await ethers.getContractFactory("EntryPoint");
-  const entryPoint = new ethers.Contract(
-    EntryPointAddress,
-    EntryPoint.interface,
-    bundler
-  );
-
-  console.log(await accountAPI.getInitCode());
-  console.log(await getInitCode(owner.address));
+  console.log("Simple Account Address: " + account);
+  config.account = account;
+  config = JSON.stringify(config);
+  fs.writeFileSync("./config.json", config);
 }
 
 main().catch((error) => {

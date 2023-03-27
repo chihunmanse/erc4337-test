@@ -1,6 +1,6 @@
 /** @format */
 
-import { SimpleAccountFactoryAddress } from "./config";
+import { SimpleAccountFactoryAddress } from "./constant";
 /** @format */
 
 import { ethers } from "hardhat";
